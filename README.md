@@ -19,6 +19,8 @@ Las funciones de limpieza y transformación no modifican los datos recibidos. La
 main.py
 data/
 └── transactions_50k.jsonl
+notebooks/
+└── transactions_exploration.ipynb
 python/
 ├── __init__.py
 ├── metadata/
