@@ -31,4 +31,9 @@ def build_transaction_summary(transactions: pd.DataFrame) -> pd.DataFrame:
         approved_amount_in_cents=("amount_in_cents", "sum"),
     )
 
-    return transaction_summary.sort_values(GROUP_COLUMNS, ignore_index=True)
+    sorted_summary = transaction_summary.sort_values(
+        GROUP_COLUMNS,
+        ignore_index=True,
+    )
+
+    return sorted_summary

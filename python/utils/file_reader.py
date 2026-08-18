@@ -22,9 +22,10 @@ def read_file(file_path: str) -> pd.DataFrame:
     file_extension = os.path.splitext(file_path)[1].lower()
 
     if file_extension == ".jsonl":
-        return pd.read_json(file_path, lines=True)
+        data_frame = pd.read_json(file_path, lines=True)
+    elif file_extension == ".txt":
+        data_frame = pd.read_json(file_path, lines=True)
+    else:
+        raise ValueError(f"Extensión de archivo no soportada: {file_extension}")
 
-    if file_extension == ".txt":
-        return pd.read_json(file_path, lines=True)
-
-    raise ValueError(f"Extensión de archivo no soportada: {file_extension}")
+    return data_frame
