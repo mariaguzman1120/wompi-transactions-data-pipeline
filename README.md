@@ -108,6 +108,7 @@ python main.py
 | --- | --- |
 | `--input-path` | `data/transactions_50k.jsonl` |
 | `--output-path` | `output/transactions_summary.parquet` |
+| `--log-path` | `logs/pipeline.log` |
 
 También se pueden indicar rutas diferentes sin modificar el código:
 
@@ -115,7 +116,9 @@ También se pueden indicar rutas diferentes sin modificar el código:
 python main.py --input-path data/transactions_50k.jsonl --output-path output/transactions_summary.parquet
 ```
 
-El logger informa el inicio del proceso, las filas leídas, las transacciones aprobadas, las filas agregadas y la ruta del resultado.
+El logger registra el inicio y el final del pipeline, las rutas utilizadas, la cantidad de registros procesados y la duración de cada etapa. Los eventos se muestran en la consola y se conservan en `logs/pipeline.log`. Si ocurre un error, guarda el contexto y el stack trace sin registrar el contenido de las transacciones.
+
+La ruta del archivo puede configurarse con `--log-path`. El modo de escritura es acumulativo, por lo que cada ejecución conserva el historial anterior.
 
 ## Pruebas
 

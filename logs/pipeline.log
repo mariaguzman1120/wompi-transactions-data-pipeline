@@ -1,0 +1,6 @@
+2026-08-18 01:01:28,966 | INFO | __main__ | Iniciando el pipeline | entrada=data\transactions_50k.jsonl | salida=output\transactions_summary.parquet
+2026-08-18 01:01:29,572 | INFO | __main__ | Lectura completada | registros=50000 | duracion_segundos=0.606
+2026-08-18 01:01:29,671 | INFO | __main__ | Limpieza completada | registros=50000 | duracion_segundos=0.099
+2026-08-18 01:01:29,759 | INFO | __main__ | Transformación completada | transacciones_aprobadas=42427 | filas_agregadas=21529 | duracion_segundos=0.087
+2026-08-18 01:01:29,865 | INFO | __main__ | Escritura completada | filas=21529 | ruta=output\transactions_summary.parquet | duracion_segundos=0.106
+2026-08-18 01:01:29,865 | INFO | __main__ | Pipeline finalizado | duracion_segundos=0.899
