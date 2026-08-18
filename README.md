@@ -9,9 +9,10 @@ Pipeline reproducible para convertir transacciones en una vista analítica de op
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![pandas](https://img.shields.io/badge/pandas-3.0.5-150458?style=for-the-badge&logo=pandas&logoColor=white)
 ![PyArrow](https://img.shields.io/badge/PyArrow-25.0.1-2F6F9F?style=for-the-badge&logo=apache&logoColor=white)
+![pytest](https://img.shields.io/badge/pytest-9.1.1-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 ![Parquet](https://img.shields.io/badge/Salida-Parquet-50ABF1?style=for-the-badge&logo=apache&logoColor=white)
 
-[Pipeline](#pipeline) · [Arquitectura](#arquitectura) · [Instalación](#instalación) · [Ejecución](#ejecución) · [Notebook](#notebook) · [Salida](#esquema-de-salida)
+[Pipeline](#pipeline) · [Arquitectura](#arquitectura) · [Instalación](#instalación) · [Ejecución](#ejecución) · [Pruebas](#pruebas) · [Notebook](#notebook) · [Salida](#esquema-de-salida)
 
 </div>
 
@@ -58,9 +59,17 @@ flowchart LR
 │       ├── data_transformation.py
 │       ├── file_reader.py
 │       └── file_writer.py
+├── tests/
+│   ├── conftest.py
+│   ├── test_data_cleaning.py
+│   ├── test_data_transformation.py
+│   ├── test_file_reader.py
+│   ├── test_file_writer.py
+│   └── test_pipeline.py
 ├── output/
 │   └── transactions_summary.parquet
 ├── .gitignore
+├── pytest.ini
 ├── README.md
 └── requirements.txt
 ```
@@ -75,7 +84,7 @@ py -3.12 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Las dependencias principales son `pandas`, para procesar los datos, y `pyarrow`, como motor de escritura y lectura de Parquet.
+Las dependencias principales son `pandas`, para procesar los datos; `pyarrow`, como motor de escritura y lectura de Parquet; y `pytest`, para ejecutar las pruebas automatizadas.
 
 ## Preparación de los datos
 
@@ -107,6 +116,30 @@ python main.py --input-path data/transactions_50k.jsonl --output-path output/tra
 ```
 
 El logger informa el inicio del proceso, las filas leídas, las transacciones aprobadas, las filas agregadas y la ruta del resultado.
+
+## Pruebas
+
+La suite valida la lectura, la limpieza, la transformación, la escritura y la ejecución completa del pipeline. También comprueba su idempotencia: con la misma entrada y los mismos parámetros, dos ejecuciones consecutivas generan el mismo esquema, orden, contenido y SHA-256, sin acumular filas o montos.
+
+Con el entorno virtual activo, todas las pruebas se ejecutan desde la raíz del proyecto:
+
+```powershell
+python -m pytest
+```
+
+Para mostrar únicamente el resumen:
+
+```powershell
+python -m pytest -q
+```
+
+También se puede ejecutar un archivo específico. Por ejemplo, la prueba de idempotencia de extremo a extremo:
+
+```powershell
+python -m pytest tests/test_pipeline.py -q
+```
+
+Las pruebas usan directorios temporales proporcionados por `pytest`; no leen el archivo de `data/` ni sobrescriben el resultado almacenado en `output/`.
 
 ## Notebook
 
