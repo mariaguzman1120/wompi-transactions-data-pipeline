@@ -21,41 +21,36 @@ def clean_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
     if missing_columns:
         raise ValueError(f"Faltan columnas requeridas: {missing_columns}")
 
-    cleaned_transactions = transactions.loc[:, REQUIRED_COLUMNS].assign(
-        created_at=lambda data_frame: pd.to_datetime(
-            data_frame["created_at"], errors="coerce"
-        ),
-        status=lambda data_frame: (
-            data_frame["status"].astype("string").str.strip().str.upper()
-        ),
-        amount_in_cents=lambda data_frame: pd.to_numeric(
-            data_frame["amount_in_cents"], errors="coerce"
-        ),
-        bin=lambda data_frame: data_frame["payment_method_type"].map(
-            lambda method: (
-                method["extra"].get("bin")
-                if isinstance(method, dict)
-                and isinstance(method.get("extra"), dict)
-                else pd.NA
-            )
-        ),
+    cleaned_transactions = transactions.loc[:, REQUIRED_COLUMNS]
+
+    cleaned_transactions["created_at"] = pd.to_datetime(
+        cleaned_transactions["created_at"],
+        errors="coerce",
     )
 
-    if cleaned_transactions.loc[:, CLEANED_COLUMNS].isna().any().any():
-        raise ValueError("Se encontraron valores nulos o inválidos")
+    cleaned_transactions["status"] = (
+        cleaned_transactions["status"].str.strip().str.upper()
+    )
 
-    if not cleaned_transactions["bin"].astype("string").str.fullmatch(r"\d{6}").all():
-        raise ValueError("Todos los BIN deben contener seis dígitos")
+    cleaned_transactions["amount_in_cents"] = pd.to_numeric(
+        cleaned_transactions["amount_in_cents"],
+        errors="coerce",
+    )
 
-    if not cleaned_transactions["amount_in_cents"].mod(1).eq(0).all():
-        raise ValueError("Los montos en centavos deben ser enteros")
+    cleaned_transactions["bin"] = cleaned_transactions["payment_method_type"].map(
+        lambda method: (
+            method["extra"].get("bin")
+            if isinstance(method, dict) and isinstance(method.get("extra"), dict)
+            else pd.NA
+        )
+    )
 
-    if cleaned_transactions["amount_in_cents"].le(0).any():
-        raise ValueError("Los montos en centavos deben ser positivos")
+    data_types = {
+        "status": "string",
+        "amount_in_cents": "int64",
+        "bin": "string",
+    }
+    cleaned_transactions = cleaned_transactions.astype(data_types)
+    cleaned_transactions = cleaned_transactions.loc[:, CLEANED_COLUMNS]
 
-    return cleaned_transactions.assign(
-        amount_in_cents=lambda data_frame: data_frame["amount_in_cents"].astype(
-            "int64"
-        ),
-        bin=lambda data_frame: data_frame["bin"].astype("string"),
-    ).loc[:, CLEANED_COLUMNS]
+    return cleaned_transactions
