@@ -21,6 +21,9 @@ data/
 └── transactions_50k.jsonl
 python/
 ├── __init__.py
+├── metadata/
+│   ├── __init__.py
+│   └── transaction_metadata.py
 └── utils/
     ├── __init__.py
     ├── data_cleaning.py
@@ -32,6 +35,8 @@ output/
 requirements.txt
 ```
 
+El paquete `python/metadata/` centraliza las columnas, estados y claves de agrupación compartidas por los módulos del pipeline.
+
 ## Requisitos
 
 - Python 3.12
@@ -40,9 +45,7 @@ requirements.txt
 Dependencias principales:
 
 - `pandas`: lectura, limpieza y agregación de datos.
-- `numpy`: soporte para operaciones numéricas.
 - `pyarrow`: motor utilizado para escribir y leer Parquet.
-- `fastparquet`: compatibilidad adicional con Parquet.
 
 ## Instalación
 

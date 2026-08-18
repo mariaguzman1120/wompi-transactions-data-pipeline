@@ -2,8 +2,7 @@
 
 import pandas as pd
 
-
-GROUP_COLUMNS = ["transaction_date", "month", "year", "bin"]
+from python.metadata import APPROVED_STATUS, GROUP_COLUMNS
 
 
 def build_transaction_summary(transactions: pd.DataFrame) -> pd.DataFrame:
@@ -16,7 +15,7 @@ def build_transaction_summary(transactions: pd.DataFrame) -> pd.DataFrame:
         Vista agregada por fecha y BIN.
     """
     approved_transactions = transactions.loc[
-        transactions["status"].eq("APPROVED")
+        transactions["status"].eq(APPROVED_STATUS)
     ].assign(
         transaction_date=lambda data_frame: data_frame["created_at"].dt.date,
         month=lambda data_frame: data_frame["created_at"].dt.month.astype("int8"),
