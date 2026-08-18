@@ -84,7 +84,7 @@ py -3.12 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Las dependencias principales son `pandas`, para procesar los datos; `pyarrow`, como motor de escritura y lectura de Parquet; y `pytest`, para ejecutar las pruebas automatizadas.
+Las dependencias principales son `pandas`, para procesar los datos; `pyarrow`, como motor de escritura y lectura de Parquet; `pytest`, para ejecutar las pruebas automatizadas; e `ipykernel`, para usar el entorno virtual como kernel del notebook.
 
 ## Preparación de los datos
 
@@ -147,6 +147,8 @@ Las pruebas usan directorios temporales proporcionados por `pytest`; no leen el 
 ## Notebook
 
 El notebook [`notebooks/transactions_exploration.ipynb`](notebooks/transactions_exploration.ipynb) reproduce el pipeline en el mismo orden que `main.py`. Presenta la entrada, las decisiones de limpieza, las transformaciones y el resultado sin implementar una lógica paralela.
+
+Después de instalar los requerimientos, se debe abrir el notebook en un editor compatible y seleccionar `.venv\Scripts\python.exe` como kernel. De esta manera, las celdas utilizan las mismas dependencias y módulos que `main.py`.
 
 ## Esquema de salida
 
