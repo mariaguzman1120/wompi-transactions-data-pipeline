@@ -2,14 +2,7 @@
 
 import pandas as pd
 
-
-REQUIRED_COLUMNS = [
-    "id",
-    "created_at",
-    "status",
-    "payment_method_type",
-    "amount_in_cents",
-]
+from python.metadata import CLEANED_COLUMNS, REQUIRED_COLUMNS
 
 
 def clean_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
@@ -40,15 +33,15 @@ def clean_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
         ),
         bin=lambda data_frame: data_frame["payment_method_type"].map(
             lambda method: (
-                method.get("extra", {}).get("bin")
+                method["extra"].get("bin")
                 if isinstance(method, dict)
+                and isinstance(method.get("extra"), dict)
                 else pd.NA
             )
         ),
     )
 
-    validated_columns = ["id", "created_at", "status", "amount_in_cents", "bin"]
-    if cleaned_transactions.loc[:, validated_columns].isna().any().any():
+    if cleaned_transactions.loc[:, CLEANED_COLUMNS].isna().any().any():
         raise ValueError("Se encontraron valores nulos o inválidos")
 
     if not cleaned_transactions["bin"].astype("string").str.fullmatch(r"\d{6}").all():
@@ -65,4 +58,4 @@ def clean_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
             "int64"
         ),
         bin=lambda data_frame: data_frame["bin"].astype("string"),
-    ).loc[:, validated_columns]
+    ).loc[:, CLEANED_COLUMNS]
