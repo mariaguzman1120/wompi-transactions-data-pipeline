@@ -1,106 +1,116 @@
-# Pipeline de datos de transacciones Wompi
+<div align="center">
 
-Pipeline desarrollado en Python para procesar transacciones con tarjeta y generar una vista agregada de las operaciones aprobadas en formato Parquet.
+# Wompi Transactions Data Pipeline
 
-## Flujo del pipeline
+Pipeline reproducible para convertir transacciones en una vista analítica de operaciones aprobadas.
 
-1. Lee las transacciones desde un archivo JSONL o TXT con contenido JSON Lines.
-2. Valida las columnas requeridas, los tipos, el BIN y los montos.
-3. Normaliza el estado y extrae el BIN del método de pago.
-4. Conserva únicamente las transacciones con estado `APPROVED`.
-5. Agrega la cantidad y el monto aprobado por fecha y BIN.
-6. Ordena el resultado y lo guarda en formato Parquet.
+**50.000 transacciones · 42.427 aprobadas · 21.529 filas agregadas**
 
-Las funciones de limpieza y transformación no modifican los datos recibidos. La lectura, la escritura y el logging se mantienen en los límites del pipeline.
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-3.0.5-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![PyArrow](https://img.shields.io/badge/PyArrow-25.0.1-2F6F9F?style=for-the-badge&logo=apache&logoColor=white)
+![Parquet](https://img.shields.io/badge/Salida-Parquet-50ABF1?style=for-the-badge&logo=apache&logoColor=white)
 
-## Estructura del proyecto
+[Pipeline](#pipeline) · [Arquitectura](#arquitectura) · [Instalación](#instalación) · [Ejecución](#ejecución) · [Notebook](#notebook) · [Salida](#esquema-de-salida)
 
-```text
-main.py
-data/
-└── transactions_50k.jsonl
-notebooks/
-└── transactions_exploration.ipynb
-python/
-├── __init__.py
-├── metadata/
-│   ├── __init__.py
-│   └── transaction_metadata.py
-└── utils/
-    ├── __init__.py
-    ├── data_cleaning.py
-    ├── data_transformation.py
-    ├── file_reader.py
-    └── file_writer.py
-output/
-└── transactions_summary.parquet
-requirements.txt
+</div>
+
+## Qué resuelve
+
+El proyecto lee transacciones en formato JSON Lines, normaliza los campos necesarios y genera un archivo Parquet agregado por fecha y BIN. Solo las operaciones con estado `APPROVED` participan en el resultado.
+
+| Entrada | Procesamiento | Salida |
+| --- | --- | --- |
+| JSONL o TXT con contenido JSON Lines | Lectura, limpieza, filtrado y agregación | Parquet ordenado por fecha y BIN |
+
+## Pipeline
+
+```mermaid
+flowchart LR
+    A["JSONL o TXT"] --> B["read_file"]
+    B --> C["clean_transactions"]
+    C --> D["build_transaction_summary"]
+    D --> E["write_parquet"]
+    E --> F["Parquet agregado"]
 ```
 
-El paquete `python/metadata/` centraliza las columnas, estados y claves de agrupación compartidas por los módulos del pipeline.
+1. Lee el archivo de entrada y construye un DataFrame.
+2. Selecciona las columnas requeridas y normaliza fecha, estado y monto.
+3. Extrae el BIN desde `payment_method_type.extra.bin`.
+4. Filtra las transacciones aprobadas.
+5. Calcula la cantidad y el monto aprobado por fecha y BIN.
+6. Ordena el resultado y lo escribe en formato Parquet.
 
-## Requisitos
+## Arquitectura
 
-- Python 3.12
-- `pip`
+`main.py` orquesta el flujo y mantiene la lectura, la escritura y el registro de eventos en los límites del pipeline. Las transformaciones se concentran en funciones que reciben y retornan DataFrames, mientras que `python/metadata/` centraliza columnas, estados y claves de agrupación.
 
-Dependencias principales:
-
-- `pandas`: lectura, limpieza y agregación de datos.
-- `pyarrow`: motor utilizado para escribir y leer Parquet.
+```text
+.
+├── main.py
+├── notebooks/
+│   └── transactions_exploration.ipynb
+├── python/
+│   ├── metadata/
+│   │   └── transaction_metadata.py
+│   └── utils/
+│       ├── data_cleaning.py
+│       ├── data_transformation.py
+│       ├── file_reader.py
+│       └── file_writer.py
+├── output/
+│   └── transactions_summary.parquet
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
 
 ## Instalación
 
-Crear el entorno virtual:
+Requisitos: Python 3.12 y `pip`.
 
 ```powershell
 py -3.12 -m venv .venv
-```
-
-Activarlo en PowerShell:
-
-```powershell
 .\.venv\Scripts\Activate.ps1
-```
-
-Instalar las dependencias:
-
-```powershell
 python -m pip install -r requirements.txt
 ```
 
+Las dependencias principales son `pandas`, para procesar los datos, y `pyarrow`, como motor de escritura y lectura de Parquet.
+
 ## Preparación de los datos
 
-Ubicar el archivo descomprimido en la siguiente ruta:
+El archivo se recibe descomprimido y debe ubicarse en:
 
 ```text
 data/transactions_50k.jsonl
 ```
 
-La carpeta `data/` está excluida del control de versiones porque contiene información personal, operacional y documentos locales de referencia.
+La carpeta `data/` está excluida del control de versiones porque contiene información personal, operacional y documentos locales del reto.
 
 ## Ejecución
 
-Desde la raíz del proyecto, ejecutar:
+Desde la raíz del proyecto:
 
 ```powershell
 python main.py
 ```
 
-La ejecución anterior utiliza estas rutas predeterminadas:
+| Parámetro | Valor predeterminado |
+| --- | --- |
+| `--input-path` | `data/transactions_50k.jsonl` |
+| `--output-path` | `output/transactions_summary.parquet` |
 
-| Parámetro | Valor predeterminado | Descripción |
-| --- | --- | --- |
-| `--input-path` | `data/transactions_50k.jsonl` | Archivo JSONL o TXT de entrada. |
-| `--output-path` | `output/transactions_summary.parquet` | Archivo Parquet de salida. |
-
-Para usar rutas diferentes:
+También se pueden indicar rutas diferentes sin modificar el código:
 
 ```powershell
 python main.py --input-path data/transactions_50k.jsonl --output-path output/transactions_summary.parquet
 ```
 
-El parser de argumentos permite cambiar estas rutas desde la terminal sin modificar el código. Durante la ejecución, el logger informa las filas leídas, aprobadas y agregadas, además de la ubicación del resultado.
+El logger informa el inicio del proceso, las filas leídas, las transacciones aprobadas, las filas agregadas y la ruta del resultado.
+
+## Notebook
+
+El notebook [`notebooks/transactions_exploration.ipynb`](notebooks/transactions_exploration.ipynb) reproduce el pipeline en el mismo orden que `main.py`. Presenta la entrada, las decisiones de limpieza, las transformaciones y el resultado sin implementar una lógica paralela.
 
 ## Esquema de salida
 
@@ -109,33 +119,32 @@ El parser de argumentos permite cambiar estas rutas desde la terminal sin modifi
 | `transaction_date` | Fecha de creación de la transacción. |
 | `month` | Mes de la transacción. |
 | `year` | Año de la transacción. |
-| `bin` | Bank Identification Number de seis dígitos. |
+| `bin` | Bank Identification Number asociado al método de pago. |
 | `approved_transaction_count` | Cantidad de transacciones aprobadas. |
 | `approved_amount_in_cents` | Suma de los montos aprobados en centavos. |
 
-## Supuestos
+## Decisiones y supuestos
 
 - `created_at` define la fecha de la transacción.
-- Solo el estado `APPROVED`, después de normalizar mayúsculas y espacios, representa una aprobación.
+- El estado se normaliza eliminando espacios y convirtiéndolo a mayúsculas.
+- Solo el valor exacto `APPROVED` representa una aprobación después de normalizarlo.
 - El BIN se obtiene de `payment_method_type.extra.bin`.
-- Los montos se conservan como enteros en centavos porque la fuente no informa una moneda.
-- Un registro inválido detiene el pipeline para evitar pérdidas silenciosas de información.
-- El resultado se ordena por fecha, mes, año y BIN.
-
-## Idempotencia
-
-Si la entrada no cambia, cada ejecución reemplaza el archivo Parquet con el mismo esquema, orden y contenido.
+- Los montos se convierten a enteros y se conservan en centavos porque la fuente no informa una moneda.
+- Las columnas de entrada requeridas deben existir; si falta alguna, el pipeline se detiene.
+- El resultado se ordena por fecha, mes, año y BIN para mantener una salida determinista.
 
 ## Resultado validado
 
-Para el archivo entregado con el reto se obtuvieron los siguientes resultados:
+| Métrica | Resultado |
+| --- | ---: |
+| Transacciones leídas | 50.000 |
+| Transacciones aprobadas | 42.427 |
+| Filas agregadas | 21.529 |
+| Monto aprobado en centavos | 1.965.579.524.955 |
+| Valores nulos en la salida | 0 |
+| Claves agregadas duplicadas | 0 |
 
-- 50.000 transacciones leídas.
-- 42.427 transacciones aprobadas.
-- 21.529 filas agregadas.
-- 1.965.579.524.955 centavos aprobados.
-- Cero valores nulos y cero claves agregadas duplicadas.
-- El mismo SHA-256 después de dos ejecuciones consecutivas.
+Con la misma entrada, dos ejecuciones consecutivas generan el mismo esquema, orden, contenido y SHA-256.
 
 ## Desactivación del entorno
 
